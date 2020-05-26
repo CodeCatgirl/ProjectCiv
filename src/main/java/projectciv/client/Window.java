@@ -7,7 +7,6 @@ import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 
 import javax.swing.JFrame;
-import javax.swing.JPanel;
 
 import main.java.projectciv.Main;
 import main.java.projectciv.Main.GameLoop;

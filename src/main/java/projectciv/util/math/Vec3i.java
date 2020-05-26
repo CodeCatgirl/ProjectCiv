@@ -98,6 +98,16 @@ public class Vec3i {
 	}
 	
 	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + x;
+		result = prime * result + y;
+		result = prime * result + z;
+		return result;
+	}
+	
+	@Override
 	public String toString() {
 		return "(" + x + ", " + y + ", " + z + ")";
 	}

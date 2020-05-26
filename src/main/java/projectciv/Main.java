@@ -7,9 +7,13 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.image.BufferStrategy;
 
-import main.java.projectciv.client.HexRenderer;
+import main.java.projectciv.city.CityHandler;
+import main.java.projectciv.client.Camera;
+import main.java.projectciv.client.KeyHandler;
+import main.java.projectciv.client.MouseHandler;
 import main.java.projectciv.client.Window;
-import main.java.projectciv.hexes.HexHandler;
+import main.java.projectciv.client.renderer.RendererHex;
+import main.java.projectciv.hex.HexHandler;
 import main.java.projectciv.util.Console;
 import main.java.projectciv.util.Console.WarningType;
 import main.java.projectciv.util.math.MathH;
@@ -25,13 +29,18 @@ public class Main {
 	public static final int HUD_WIDTH = 640, HUD_HEIGHT = 360;
 	private int width = HUD_WIDTH, height = HUD_HEIGHT, w2, h2;
 	private static int fps;
+	private double scale;
 	
 	public static boolean isDebug;
 	
 	public static final String ASSETS_LOCATION = "/main/resources/projectciv/assets/";
 	
-	private static HexRenderer hexRenderer;
+	private static RendererHex hexRenderer;
 	private static HexHandler hexHandler;
+	private static Camera camera;
+	private static KeyHandler keyHandler;
+	private static MouseHandler mouseHandler;
+	private static CityHandler cityHandler;
 	
 	public static void main(String args[]) {
 		StringBuilder sb = new StringBuilder();
@@ -64,9 +73,14 @@ public class Main {
 		
 		gameLoop.setupComponents();
 		
+		keyHandler = new KeyHandler();
+		mouseHandler = new MouseHandler();
+		
 		hexHandler = new HexHandler();
-		hexRenderer = new HexRenderer();
+		hexRenderer = new RendererHex();
 		hexRenderer.setupTextures();
+		
+		gameLoop.setupComponents();
 		
 		Console.print(WarningType.Info, "Pre-Initialization finished!");
 	}
@@ -74,26 +88,27 @@ public class Main {
 	private void init() {
 		Console.print(WarningType.Info, "Initialization started...");
 		
+		hexHandler.setup();
+		camera = new Camera();
+		
 		Console.print(WarningType.Info, "Initialization finished!");
 	}
 	
 	private void postInit() {
 		Console.print(WarningType.Info, "Post-Initialization started...");
 		
-		hexHandler.setup();
+		cityHandler = new CityHandler();
 		
 		Console.print(WarningType.Info, "Post-Initialization finished!");
 	}
 	
 	private void tick() {
-		
+		keyHandler.tick();
+		camera.tick();
 	}
 	
 	private void render(Graphics2D g) { //TODO use better
-		g.setColor(Color.BLACK);
-		g.fillRect(0, 0, width, height);
-		/*
-		double scale = Math.min((double) width / HUD_WIDTH, (double) height / HUD_HEIGHT);
+		scale = Math.min((double) width / HUD_WIDTH, (double) height / HUD_HEIGHT);
 		int w = (int) Math.ceil((HUD_WIDTH * scale));
 		w2 = (int) Math.ceil((width - w) / scale);
 		int h = (int) Math.ceil((HUD_HEIGHT * scale));
@@ -103,12 +118,11 @@ public class Main {
 		
 		g.setColor(Color.GRAY);
 		g.fillRect(0, 0, width, height);
-		
 		g.translate(w2 / 2, h2 / 2);
-		*/
-		//g.translate(-camera.getPosX(), -camera.getPosY());
+		
+		g.translate(-camera.getPosX(), -camera.getPosY());
 		hexRenderer.render(g);
-		//g.translate(camera.getPosX(), camera.getPosY());
+		g.translate(camera.getPosX(), camera.getPosY());
 		
 		//mainHud.draw(g);
 		
@@ -117,13 +131,11 @@ public class Main {
 			g.drawString("FPS: " + fps, 0, 10);
 		}
 		
-		/*
 		g.setColor(Color.BLACK);
 		g.fillRect((int) (w / scale), 0, w2, height);
 		g.fillRect(-w2, 0, w2, height);
 		g.fillRect(0, (int) (h / scale), width, h2);
 		g.fillRect(0, -h2, width, h2);
-		*/
 		g.dispose();
 	}
 	
@@ -143,12 +155,24 @@ public class Main {
 		return h2;
 	}
 	
+	public double getScale() {
+		return scale;
+	}
+	
 	public int getFPS() {
 		return fps;
 	}
 	
 	public HexHandler getHexHandler() {
 		return hexHandler;
+	}
+	
+	public Camera getCamera() {
+		return camera;
+	}
+	
+	public CityHandler getCityHandler() {
+		return cityHandler;
 	}
 	
 	public static Main getMain() {
@@ -160,12 +184,12 @@ public class Main {
 	}
 	
 	public class GameLoop extends Canvas implements Runnable {
-		private static final long serialVersionUID = -2518563563721413864L;
+		private static final long serialVersionUID = 1L;
 		
 		private boolean running = false;
 		private Thread thread;
 		
-		public void start() {
+		private void start() {
 			thread = new Thread(this);
 			thread.start();
 			running = true;
@@ -233,8 +257,10 @@ public class Main {
 			}
 		}
 		
-		public void setupComponents() {
-			//addKeyListener(keyHandler); //TODO setup keys
+		private void setupComponents() {
+			addKeyListener(keyHandler);
+			addMouseListener(mouseHandler);
+			addMouseWheelListener(mouseHandler);
 			addComponentListener(new ComponentListener() {
 				@Override public void componentShown(ComponentEvent e) {}
 				@Override public void componentMoved(ComponentEvent e) {}
