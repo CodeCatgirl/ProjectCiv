@@ -3,17 +3,24 @@ package main.java.projectciv;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferStrategy;
+import java.util.ArrayList;
+import java.util.List;
 
 import main.java.projectciv.city.CityHandler;
 import main.java.projectciv.client.Camera;
 import main.java.projectciv.client.KeyHandler;
 import main.java.projectciv.client.MouseHandler;
 import main.java.projectciv.client.Window;
+import main.java.projectciv.client.gui.HudResources;
+import main.java.projectciv.client.renderer.IRenderer;
 import main.java.projectciv.client.renderer.RendererHex;
 import main.java.projectciv.hex.HexHandler;
+import main.java.projectciv.init.HexDatas;
 import main.java.projectciv.util.Console;
 import main.java.projectciv.util.Console.WarningType;
 import main.java.projectciv.util.math.MathH;
@@ -35,12 +42,13 @@ public class Main {
 	
 	public static final String ASSETS_LOCATION = "/main/resources/projectciv/assets/";
 	
-	private static RendererHex hexRenderer;
+	private static List<IRenderer> renderers = new ArrayList<IRenderer>();
+	
 	private static HexHandler hexHandler;
-	private static Camera camera;
+	private static CityHandler cityHandler;
 	private static KeyHandler keyHandler;
 	private static MouseHandler mouseHandler;
-	private static CityHandler cityHandler;
+	private static Camera camera;
 	
 	public static void main(String args[]) {
 		StringBuilder sb = new StringBuilder();
@@ -75,10 +83,16 @@ public class Main {
 		
 		keyHandler = new KeyHandler();
 		mouseHandler = new MouseHandler();
-		
 		hexHandler = new HexHandler();
-		hexRenderer = new RendererHex();
-		hexRenderer.setupTextures();
+		
+		addRenderer(new RendererHex());
+		addRenderer(new HudResources());
+		
+		for (IRenderer r : renderers) {
+			r.setupTextures();
+		}
+		
+		HexDatas.registerAll();
 		
 		gameLoop.setupComponents();
 		
@@ -107,6 +121,8 @@ public class Main {
 		camera.tick();
 	}
 	
+	private static final RenderingHints RH = new RenderingHints(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+	
 	private void render(Graphics2D g) { //TODO use better
 		scale = Math.min((double) width / HUD_WIDTH, (double) height / HUD_HEIGHT);
 		int w = (int) Math.ceil((HUD_WIDTH * scale));
@@ -114,21 +130,35 @@ public class Main {
 		int h = (int) Math.ceil((HUD_HEIGHT * scale));
 		h2 = (int) Math.ceil((height - h) / scale);
 		
+		g.setRenderingHints(RH);
 		g.scale(scale, scale);
 		
 		g.setColor(Color.GRAY);
 		g.fillRect(0, 0, width, height);
 		g.translate(w2 / 2, h2 / 2);
 		
-		g.translate(-camera.getPosX(), -camera.getPosY());
-		hexRenderer.render(g);
-		g.translate(camera.getPosX(), camera.getPosY());
+		AffineTransform at = g.getTransform();
+		g.scale(camera.getZoom(), camera.getZoom());
 		
-		//mainHud.draw(g);
+		g.translate(-camera.getPosX(), -camera.getPosY());
+		for (IRenderer r : renderers) {
+			if (!r.isHud()) {
+				r.render(g);
+			}
+		}
+		g.translate(camera.getPosX(), camera.getPosY());
+		g.setTransform(at);
+		
+		for (IRenderer r : renderers) {
+			if (r.isHud()) {
+				r.render(g);
+			}
+		}
 		
 		if (isDebug) {
 			g.setColor(Color.GREEN);
-			g.drawString("FPS: " + fps, 0, 10);
+			g.drawString("FPS: " + fps, 1, 25);
+			g.drawString("ZOOM:" + camera.getZoom(), 1, 36);
 		}
 		
 		g.setColor(Color.BLACK);
@@ -137,6 +167,11 @@ public class Main {
 		g.fillRect(0, (int) (h / scale), width, h2);
 		g.fillRect(0, -h2, width, h2);
 		g.dispose();
+	}
+	
+	private void addRenderer( IRenderer r) {
+		renderers.add(r);
+		Console.print(WarningType.RegisterDebug, "Registered '" + r.getClass().getSimpleName() + "' as a renderer!");
 	}
 	
 	public int getWindowWidth() {
@@ -260,6 +295,7 @@ public class Main {
 		private void setupComponents() {
 			addKeyListener(keyHandler);
 			addMouseListener(mouseHandler);
+			addMouseMotionListener(mouseHandler);
 			addMouseWheelListener(mouseHandler);
 			addComponentListener(new ComponentListener() {
 				@Override public void componentShown(ComponentEvent e) {}

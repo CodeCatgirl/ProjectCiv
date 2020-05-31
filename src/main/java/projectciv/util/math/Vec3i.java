@@ -1,6 +1,8 @@
 package main.java.projectciv.util.math;
 
-public class Vec3i {
+import main.java.projectciv.util.ICopyable;
+
+public class Vec3i implements ICopyable<Vec3i> {
 	
 	public static final Vec3i ZERO = new Vec3i();
 	protected int x, y, z;
@@ -27,28 +29,33 @@ public class Vec3i {
 		this(vec.getX(), vec.getY(), vec.getZ());
 	}
 	
-	public void add(Vec3i vec) {
+	public Vec3i add(Vec3i vec) {
 		this.x += vec.x;
 		this.y += vec.y;
 		this.z += vec.z;
+		return this;
 	}
 	
-	public void add(int x, int y, int z) {
+	public Vec3i add(int x, int y, int z) {
 		this.x += x;
 		this.y += y;
 		this.z += z;
+		return this;
 	}
 	
-	public void addX(int x) {
+	public Vec3i addX(int x) {
 		this.x += x;
+		return this;
 	}
 	
-	public void addY(int y) {
+	public Vec3i addY(int y) {
 		this.y += y;
+		return this;
 	}
 	
-	public void addZ(int z) {
+	public Vec3i addZ(int z) {
 		this.z += z;
+		return this;
 	}
 	
 	public void set(Vec3i vec) {
@@ -85,6 +92,11 @@ public class Vec3i {
 	
 	public int getZ() {
 		return z;
+	}
+	
+	@Override
+	public Vec3i copy() {
+		return new Vec3i(this);
 	}
 	
 	@Override

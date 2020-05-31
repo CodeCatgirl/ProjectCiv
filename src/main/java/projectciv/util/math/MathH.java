@@ -57,4 +57,8 @@ public class MathH {
 	public static float percentage(float number, float max) {
 		return (number / max) * 100f;
 	}
+	
+	public static boolean within(float value, float min, float max) {
+		return value >= min && value <= max;
+	}
 }

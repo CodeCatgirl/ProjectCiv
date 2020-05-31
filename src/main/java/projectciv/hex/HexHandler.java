@@ -14,12 +14,12 @@ public class HexHandler {
 		return hexes;
 	}
 	
+	public static final int RADIUS = 5;
+	
 	public void setup() {
-		int radius = 3;//, oRadius = 1;
-		
-		for (int zz = -radius; zz <= radius; zz++) {
-			for (int xx = -radius; xx <= radius; xx++) {
-				if (xx + zz <= radius && -(xx + zz) <= radius) {
+		for (int zz = -RADIUS; zz <= RADIUS; zz++) {
+			for (int xx = -RADIUS; xx <= RADIUS; xx++) {
+				if (xx + zz <= RADIUS && -(xx + zz) <= RADIUS) {
 					hexes.add(new Hex(new Vec3i(xx, -(xx + zz), zz)));
 					//(Math.abs(xx) <= oRadius && Math.abs(zz) <= oRadius && Math.abs(xx + zz) <= oRadius)
 				}

@@ -6,7 +6,7 @@ import java.util.List;
 import main.java.projectciv.util.math.Vec3i;
 
 public class CityHandler {
-	private int coin, food, wood, stone;
+	private float coinsPT, foodPT, woodPT, stonePT; //TODO cost = time / resourcePT
 	
 	private final List<City> cities = new ArrayList<City>();
 	
@@ -17,8 +17,24 @@ public class CityHandler {
 			e.printStackTrace();
 		}
 	}
-
+	
 	public List<City> getCities() {
 		return cities;
+	}
+	
+	public float getCoinsPT() {
+		return coinsPT;
+	}
+	
+	public float getFoodPT() {
+		return foodPT;
+	}
+	
+	public float getWoodPT() {
+		return woodPT;
+	}
+	
+	public float getStonePT() {
+		return stonePT;
 	}
 }

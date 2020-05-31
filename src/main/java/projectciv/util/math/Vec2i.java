@@ -1,6 +1,8 @@
 package main.java.projectciv.util.math;
 
-public class Vec2i {
+import main.java.projectciv.util.ICopyable;
+
+public class Vec2i implements ICopyable<Vec2i> {
 	
 	public static final Vec2i ZERO = new Vec2i();
 	protected int x, y;
@@ -28,22 +30,26 @@ public class Vec2i {
 		this(vec.getX(), vec.getY());
 	}
 	
-	public void add(Vec2i vec) {
+	public Vec2i add(Vec2i vec) {
 		this.x += vec.x;
 		this.y += vec.y;
+		return this;
 	}
 	
-	public void add(int x, int y) {
+	public Vec2i add(int x, int y) {
 		this.x += x;
 		this.y += y;
+		return this;
 	}
 	
-	public void addX(int x) {
+	public Vec2i addX(int x) {
 		this.x += x;
+		return this;
 	}
 	
-	public void addY(int y) {
+	public Vec2i addY(int y) {
 		this.y += y;
+		return this;
 	}
 	
 	public void set(Vec2i vec) {
@@ -74,6 +80,15 @@ public class Vec2i {
 	
 	public int getBothMulti() {
 		return x * y;
+	}
+	
+	public int difference(Vec2i vec) {
+		return Math.abs(x - vec.x) + Math.abs(y - vec.y);
+	}
+	
+	@Override
+	public Vec2i copy() {
+		return new Vec2i(this);
 	}
 	
 	@Override

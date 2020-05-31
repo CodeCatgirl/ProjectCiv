@@ -54,6 +54,7 @@ public class GetResource {
 	}
 	
 	public enum TextureType {
-		none, hex;
+		none,
+		hex;
 	}
 }

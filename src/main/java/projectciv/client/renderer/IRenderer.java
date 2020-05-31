@@ -1,5 +1,6 @@
 package main.java.projectciv.client.renderer;
 
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
 import main.java.projectciv.util.Console;
@@ -10,6 +11,8 @@ import main.java.projectciv.util.GetResource.TextureType;
 public interface IRenderer {
 	
 	public void setupTextures();
+	public void render(Graphics2D g);
+	public boolean isHud();
 	
 	public default BufferedImage getTexture(TextureType type, String name) {
 		BufferedImage i = GetResource.getTexture(type, name);

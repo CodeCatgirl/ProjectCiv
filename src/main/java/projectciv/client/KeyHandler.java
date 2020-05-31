@@ -28,6 +28,8 @@ public class KeyHandler extends KeyAdapter implements ITickable {
 			cameraKeys[2] = true;
 		} else if (key == KeyEvent.VK_D) {
 			cameraKeys[3] = true;
+		} else if (key == KeyEvent.VK_F11) {
+			Window.toggleFullscreen();
 		}
 	}
 	
