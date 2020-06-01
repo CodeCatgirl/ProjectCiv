@@ -1,18 +1,26 @@
 package main.java.projectciv.init;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import main.java.projectciv.hex.Hex;
+import main.java.projectciv.hex.HexData;
 import main.java.projectciv.hex.HexData.HexAnimalType;
 import main.java.projectciv.hex.HexData.HexOreType;
 import main.java.projectciv.hex.HexData.HexResourceType;
 import main.java.projectciv.hex.HexData.HexType;
 import main.java.projectciv.hex.HexData.IRawHexType;
+import main.java.projectciv.hex.HexHandler;
+import main.java.projectciv.hex.HexUtils;
 import main.java.projectciv.util.Console;
 import main.java.projectciv.util.Console.WarningType;
+import main.java.projectciv.util.EnumDirection;
+import main.java.projectciv.util.math.MathH;
+import main.java.projectciv.util.math.Vec3i;
 
 public class HexDatas {
 	private static final Map<HexType, Map<HexResourceType, List<IRawHexType>>> RESOURCE_TYPES = new HashMap<HexType, Map<HexResourceType, List<IRawHexType>>>();
@@ -36,17 +44,34 @@ public class HexDatas {
 		addResource(HexType.mountain, HexResourceType.fruit);
 		addResource(HexType.mountain, HexResourceType.salt);
 		addResource(HexType.mountain, HexOreType.gold, HexOreType.iron, HexOreType.silver);
-		addResource(HexType.mountain, HexAnimalType.goat);
+		addResource(HexType.mountain, HexAnimalType.goats);
 		
 		addResource(HexType.none, HexResourceType.none);
 		addResource(HexType.none, HexResourceType.cotton);
-		addResource(HexType.none, HexResourceType.desert);
 		addResource(HexType.none, HexResourceType.forest);
 		addResource(HexType.none, HexResourceType.fruit);
-		addResource(HexType.none, HexAnimalType.cow, HexAnimalType.sheep, HexAnimalType.elephant);
+		addResource(HexType.none, HexAnimalType.cows, HexAnimalType.sheep);
 		
 		addResource(HexType.water, HexResourceType.none);
-		addResource(HexType.water, HexAnimalType.clam, HexAnimalType.fish, HexAnimalType.whale);
+		addResource(HexType.water, HexAnimalType.clams, HexAnimalType.fish);
+		
+		addResource(HexType.ocean, HexResourceType.none);
+		addResource(HexType.ocean, HexAnimalType.fish, HexAnimalType.whales);
+		
+		addResource(HexType.desert, HexResourceType.none);
+		addResource(HexType.desert, HexResourceType.dyes);
+		addResource(HexType.desert, HexResourceType.spices);
+		addResource(HexType.desert, HexResourceType.salt);
+		addResource(HexType.desert, HexResourceType.gems);
+		addResource(HexType.desert, HexAnimalType.elephants);
+		addResource(HexType.desert, HexOreType.gold);
+		
+		addResource(HexType.swamp, HexResourceType.none);
+		addResource(HexType.swamp, HexResourceType.dyes);
+		addResource(HexType.swamp, HexResourceType.forest);
+		addResource(HexType.swamp, HexResourceType.fruit);
+		addResource(HexType.swamp, HexOreType.coal);
+		addResource(HexType.swamp, HexAnimalType.fish, HexAnimalType.crabs, HexAnimalType.frogs);
 	}
 	
 	public static List<HexResourceType> getResourceTypes(HexType type) {
@@ -112,5 +137,52 @@ public class HexDatas {
 		RESOURCE_TYPES.put(type, m);
 		Console.print(WarningType.RegisterDebug, "Added '" + HexResourceType.ore + "' to '" + type + "'! (also added " + Arrays.asList(types) + ")");
 		return;
+	}
+	
+	public static HexData getSmartHexType(Vec3i hexPos) {
+		if (hexPos.equals(new Vec3i(0, HexHandler.RADIUS, -HexHandler.RADIUS)) || hexPos.equals(Vec3i.ZERO)) {
+			return new HexData(HexType.none, HexDatas.getRandomResourceType(HexType.none));
+		}
+		
+		Random r = new Random();
+		List<HexType> types = new ArrayList<HexType>();
+		
+		for (EnumDirection dir : EnumDirection.values()) {
+			Hex h = HexUtils.getHexAt(hexPos, dir);
+			if (h != null) {
+				types.add(h.getHexData().getHexType());
+			}
+		}
+		
+		List<HexType> toPick = new ArrayList<HexType>();
+		
+		for (HexType type : types) {
+			int hill = type.getChanceForHill(), none = type.getChanceForNone(), water = type.getChanceForWater(), desert = type.getChanceForDesert(),
+					swamp = type.getChanceForSwamp(), mountain = type.getChanceForMountain();
+			int all = type.getAll(), ri = r.nextInt(all);
+			
+			water += none;
+			hill += water;
+			desert += hill;
+			swamp += desert;
+			mountain += swamp;
+			
+			if (MathH.within(ri, 0, none)) {
+				toPick.add(HexType.none);
+			} else if (MathH.within(ri, none + 1, water)) {
+				toPick.add(HexType.water);
+			} else if (MathH.within(ri, water + 1, hill)) {
+				toPick.add(HexType.hill);
+			} else if (MathH.within(ri, hill + 1, desert)) {
+				toPick.add(HexType.desert);
+			} else if (MathH.within(ri, desert + 1, swamp)) {
+				toPick.add(HexType.swamp);
+			} else if (MathH.within(ri, swamp + 1, mountain)) {
+				toPick.add(HexType.mountain);
+			}
+		}
+		
+		HexType hh = toPick.get(r.nextInt(toPick.size()));
+		return new HexData(hh, HexDatas.getRandomResourceType(hh));
 	}
 }

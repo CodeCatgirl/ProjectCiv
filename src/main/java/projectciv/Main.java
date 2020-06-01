@@ -1,13 +1,6 @@
 package main.java.projectciv;
 
 import java.awt.Canvas;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.awt.geom.AffineTransform;
-import java.awt.image.BufferStrategy;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +16,6 @@ import main.java.projectciv.hex.HexHandler;
 import main.java.projectciv.init.HexDatas;
 import main.java.projectciv.util.Console;
 import main.java.projectciv.util.Console.WarningType;
-import main.java.projectciv.util.math.MathH;
 import main.java.projectciv.util.math.Vec2i;
 
 /**
@@ -34,9 +26,6 @@ public class Main {
 	private static GameLoop gameLoop;
 	
 	public static final int HUD_WIDTH = 640, HUD_HEIGHT = 360;
-	private int width = HUD_WIDTH, height = HUD_HEIGHT, w2, h2;
-	private static int fps;
-	private double scale;
 	
 	public static boolean isDebug;
 	
@@ -64,22 +53,22 @@ public class Main {
 	}
 	
 	private synchronized void start(String titleSuffix) {
-		new Window("Project Civ " + titleSuffix, gameLoop = new GameLoop());
+		new Window("Project Civ " + titleSuffix);
+		gameLoop = new GameLoop();
 		Console.getTimeExample();
-		Console.print(WarningType.Info, "Window size: " + new Vec2i(width, height));
+		Console.print(WarningType.Info, "Window size: " + new Vec2i(getWindowWidth(), getWindowHeight()));
 		Console.print(WarningType.Info, "Starting!");
 		
 		preInit();
 		init();
 		postInit();
+		Window.canRender = true;
 		
 		gameLoop.start();
 	}
 	
 	private void preInit() {
 		Console.print(WarningType.Info, "Pre-Initialization started...");
-		
-		gameLoop.setupComponents();
 		
 		keyHandler = new KeyHandler();
 		mouseHandler = new MouseHandler();
@@ -94,7 +83,7 @@ public class Main {
 		
 		HexDatas.registerAll();
 		
-		gameLoop.setupComponents();
+		Window.setupComponents();
 		
 		Console.print(WarningType.Info, "Pre-Initialization finished!");
 	}
@@ -117,85 +106,41 @@ public class Main {
 	}
 	
 	private void tick() {
-		keyHandler.tick();
+		getKeyHandler().tick();
 		camera.tick();
 	}
 	
-	private static final RenderingHints RH = new RenderingHints(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-	
-	private void render(Graphics2D g) { //TODO use better
-		scale = Math.min((double) width / HUD_WIDTH, (double) height / HUD_HEIGHT);
-		int w = (int) Math.ceil((HUD_WIDTH * scale));
-		w2 = (int) Math.ceil((width - w) / scale);
-		int h = (int) Math.ceil((HUD_HEIGHT * scale));
-		h2 = (int) Math.ceil((height - h) / scale);
-		
-		g.setRenderingHints(RH);
-		g.scale(scale, scale);
-		
-		g.setColor(Color.GRAY);
-		g.fillRect(0, 0, width, height);
-		g.translate(w2 / 2, h2 / 2);
-		
-		AffineTransform at = g.getTransform();
-		g.scale(camera.getZoom(), camera.getZoom());
-		
-		g.translate(-camera.getPosX(), -camera.getPosY());
-		for (IRenderer r : renderers) {
-			if (!r.isHud()) {
-				r.render(g);
-			}
-		}
-		g.translate(camera.getPosX(), camera.getPosY());
-		g.setTransform(at);
-		
-		for (IRenderer r : renderers) {
-			if (r.isHud()) {
-				r.render(g);
-			}
-		}
-		
-		if (isDebug) {
-			g.setColor(Color.GREEN);
-			g.drawString("FPS: " + fps, 1, 25);
-			g.drawString("ZOOM:" + camera.getZoom(), 1, 36);
-		}
-		
-		g.setColor(Color.BLACK);
-		g.fillRect((int) (w / scale), 0, w2, height);
-		g.fillRect(-w2, 0, w2, height);
-		g.fillRect(0, (int) (h / scale), width, h2);
-		g.fillRect(0, -h2, width, h2);
-		g.dispose();
-	}
-	
-	private void addRenderer( IRenderer r) {
+	private void addRenderer(IRenderer r) {
 		renderers.add(r);
 		Console.print(WarningType.RegisterDebug, "Registered '" + r.getClass().getSimpleName() + "' as a renderer!");
 	}
 	
+	public List<IRenderer> getRenderers() {
+		return renderers;
+	}
+	
 	public int getWindowWidth() {
-		return width;
+		return Window.getGamePanel().getWidth();
 	}
 	
 	public int getWindowHeight() {
-		return height;
-	}
-	
-	public int getExtraWidth() {
-		return w2;
-	}
-	
-	public int getExtraHeight() {
-		return h2;
+		return Window.getGamePanel().getHeight();
 	}
 	
 	public double getScale() {
-		return scale;
+		return Window.getGamePanel().getScale();
+	}
+	
+	public int getExtraWidth() {
+		return Window.getFrame().getWidth() - Window.getGamePanel().getWidth();
+	}
+	
+	public int getExtraHeight() {
+		return Window.getFrame().getHeight() - Window.getGamePanel().getHeight();
 	}
 	
 	public int getFPS() {
-		return fps;
+		return Window.getGamePanel().getFPS();
 	}
 	
 	public HexHandler getHexHandler() {
@@ -218,6 +163,14 @@ public class Main {
 		gameLoop.requestFocus();
 	}
 	
+	public static KeyHandler getKeyHandler() {
+		return keyHandler;
+	}
+	
+	public static MouseHandler getMouseHandler() {
+		return mouseHandler;
+	}
+	
 	public class GameLoop extends Canvas implements Runnable {
 		private static final long serialVersionUID = 1L;
 		
@@ -230,16 +183,14 @@ public class Main {
 			running = true;
 			
 			Console.print(WarningType.Info, "Started thread!");
-			resize();
 		}
 		
 		@Override
 		public void run() {
 			Console.print(WarningType.Info, "Started run loop!");
 			requestFocus();
-			long lastTime = System.nanoTime(), timer = System.currentTimeMillis();
+			long lastTime = System.nanoTime();
 			double amountOfTicks = 60.0, ns = 1000000000 / amountOfTicks, delta = 0;
-			int frames = 0;
 			
 			while (running) {
 				long now = System.nanoTime();
@@ -253,13 +204,6 @@ public class Main {
 				
 				if (running) {
 					render();
-					frames++;
-					
-					if (System.currentTimeMillis() - timer > 1000) {
-						timer += 1000;
-						fps = frames;
-						frames = 0;
-					}
 				} else {
 					stop();
 				}
@@ -271,16 +215,7 @@ public class Main {
 				return;
 			}
 			
-			BufferStrategy bs = getBufferStrategy();
-			if (bs == null) {
-				createBufferStrategy(3);
-				Console.print(WarningType.Info, "Started render loop!");
-				return;
-			}
-			
-			Main.this.render((Graphics2D) bs.getDrawGraphics());
-			
-			bs.show();
+			Window.getGamePanel().repaint();
 		}
 		
 		private synchronized void stop() {
@@ -290,28 +225,6 @@ public class Main {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		}
-		
-		private void setupComponents() {
-			addKeyListener(keyHandler);
-			addMouseListener(mouseHandler);
-			addMouseMotionListener(mouseHandler);
-			addMouseWheelListener(mouseHandler);
-			addComponentListener(new ComponentListener() {
-				@Override public void componentShown(ComponentEvent e) {}
-				@Override public void componentMoved(ComponentEvent e) {}
-				@Override public void componentHidden(ComponentEvent e) {}
-				
-				@Override
-				public void componentResized(ComponentEvent e) {
-					resize();
-				}
-			});
-		}
-		
-		private void resize() {
-			width = MathH.clamp(getWidth(), 0, Integer.MAX_VALUE);
-			height = MathH.clamp(getHeight(), 0, Integer.MAX_VALUE);
 		}
 	}
 }

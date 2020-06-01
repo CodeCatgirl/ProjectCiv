@@ -20,7 +20,7 @@ public interface IRenderer {
 		if (i == GetResource.nil) {
 			Console.print(WarningType.TextureDebug, "Unable to register '" + name + "' for " + getClass().getSimpleName());
 		} else {
-			Console.print(WarningType.TextureDebug, "Registered '" + name + "' for" + getClass().getSimpleName());
+			Console.print(WarningType.TextureDebug, "Registered '" + name + "' for " + getClass().getSimpleName());
 		}
 		
 		return i;

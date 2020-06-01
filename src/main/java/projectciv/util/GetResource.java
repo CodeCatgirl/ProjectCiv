@@ -55,6 +55,15 @@ public class GetResource {
 	
 	public enum TextureType {
 		none,
-		hex;
+		hex,
+		hex_resources;
+		
+		@Override
+		public String toString() {
+			if (this == hex_resources) {
+				return "hex/resources";
+			}
+			return super.toString();
+		}
 	}
 }
