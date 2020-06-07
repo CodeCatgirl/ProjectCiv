@@ -19,6 +19,10 @@ public class GamePanel extends JPanel {
 	private final Main main;
 	private double scale;
 	
+	static {
+		//RH.put(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON); //lag?
+	}
+	
 	public GamePanel() {
 		main = Main.getMain();
 	}
@@ -39,6 +43,7 @@ public class GamePanel extends JPanel {
 		AffineTransform at = g.getTransform();
 		g.scale(camera.getZoom(), camera.getZoom());
 		g.translate(-camera.getPosX(), -camera.getPosY());
+		g.setClip((int) camera.getPosX(), (int) camera.getPosY(), (int) (Main.getWindowWidth() / camera.getZoom()), (int) (Main.getWindowHeight() / camera.getZoom()));
 		for (IRenderer r : renderers) {
 			if (!r.isHud()) {
 				r.render(g);
@@ -56,9 +61,10 @@ public class GamePanel extends JPanel {
 		}
 		if (Main.isDebug) {
 			g.setColor(Color.GREEN);
-			g.drawString("FPS: " + main.getFPS(), 1, 25);
+			g.drawString("FPS: " + Main.getFPS(), 1, 25);
 			g.drawString("ZOOM:" + camera.getZoom(), 1, 36);
 		}
+		g.dispose();
 		
 		long now = System.nanoTime();
 		delta += (now - lastTime) / ns;

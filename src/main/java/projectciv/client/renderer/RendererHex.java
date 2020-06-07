@@ -4,12 +4,13 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import main.java.projectciv.Main;
+import main.java.projectciv.client.Camera;
 import main.java.projectciv.hex.Hex;
 import main.java.projectciv.hex.HexData.HexAnimalType;
 import main.java.projectciv.hex.HexData.HexOreType;
@@ -25,13 +26,17 @@ public class RendererHex implements IRenderer {
 	private static Map<HexResourceType, BufferedImage> resources = new HashMap<HexResourceType, BufferedImage>();
 	private static Map<IRawHexType, BufferedImage> subResources = new HashMap<IRawHexType, BufferedImage>();
 	
+	private Camera cam;
+	
+	private final boolean isDebug = true;
+	
 	@Override
 	public void setupTextures() {
 		for (HexType hex : HexType.values()) {
-			hexes.put(hex, getTexture(TextureType.hex, hex.toString()));
+			hexes.put(hex, getTexture(TextureType.hex, hex.toString() + (isDebug ? "-" : "")));
 		}
 		for (HexResourceType hex : HexResourceType.values()) {
-			if (hex != HexResourceType.none) {
+			if (hex != HexResourceType.none && hex != HexResourceType.animals && hex != HexResourceType.ore) {
 				resources.put(hex, getTexture(TextureType.hex_resources, hex.toString()));
 			}
 		}
@@ -46,33 +51,45 @@ public class RendererHex implements IRenderer {
 	@Override
 	public void render(Graphics2D g) {
 		Color cityColor = null;
-		Map<Hex, Boolean> map = new HashMap<Hex, Boolean>();
+		List<Hex> hasCity = new ArrayList<Hex>(), noCity = new ArrayList<Hex>();
 		
-		for (Hex hex : Main.getMain().getHexHandler().getHexes()) {
+		if (cam == null) {
+			cam = Main.getMain().getCamera();
+		}
+		
+		for (Hex hex : Main.getMain().getHexHandler().getVisibleHexes()) {
 			g.drawImage(hexes.get(hex.getHexData().getHexType()), hex.getPosX(), hex.getPosY(), Hex.SIZE.getX(), Hex.SIZE.getY(), null);
 			
-			map.put(hex, hex.hasCity());
+			if (hex.hasCity()) {
+				hasCity.add(hex);
+			} else {
+				noCity.add(hex);
+			}
 			
 			if (cityColor == null && hex.hasCity()) {
 				cityColor = hex.getCity().getColor();
 			}
 			
-			if (hex.getHexData().getHexResourceType() != HexResourceType.none) {
+			if (hex.getHexData().getHexResourceType() != HexResourceType.none && hex.getHexData().getHexResourceType() != HexResourceType.animals && hex.getHexData().getHexResourceType() != HexResourceType.ore) {
 				g.drawImage(resources.get(hex.getHexData().getHexResourceType()), hex.getPosX() + 4, hex.getPosY() + 64, MathH.floor(Hex.SIZE.getX() / 3f),
 						MathH.floor(Hex.SIZE.getY() / 3f), null);
 			}
 			if (hex.getHexData().getHexRawType() != null) {
-				g.drawImage(subResources.get(hex.getHexData().getHexRawType()), hex.getPosX() + Hex.SIZE.getX() - MathH.floor(Hex.SIZE.getX() / 3f) - 4,
+				g.drawImage(subResources.get(hex.getHexData().getHexRawType()), hex.getPosX() + 4,
 						hex.getPosY() + 64, MathH.floor(Hex.SIZE.getX() / 3f), MathH.floor(Hex.SIZE.getY() / 3f), null);
 			}
 		}
 		
-		Iterator<Entry<Hex, Boolean>> it = map.entrySet().iterator();
-		while (it.hasNext()) {
-			Entry<Hex, Boolean> pair = it.next();
-			g.setColor(pair.getValue() ? cityColor : Color.BLACK);
-			g.setStroke(pair.getValue() ? bigStroke : smallStroke);
-			g.draw(pair.getKey().getHexPoly());
+		g.setColor(Color.BLACK);
+		g.setStroke(smallStroke);
+		for (Hex hex : noCity) {
+			g.draw(hex.getHexPoly());
+		}
+		
+		g.setColor(cityColor);
+		g.setStroke(bigStroke);
+		for (Hex hex : hasCity) {
+			g.draw(hex.getHexPoly());
 		}
 	}
 	

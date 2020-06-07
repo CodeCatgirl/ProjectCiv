@@ -3,6 +3,7 @@ package main.java.projectciv.city;
 import java.util.ArrayList;
 import java.util.List;
 
+import main.java.projectciv.util.CollectionUtils;
 import main.java.projectciv.util.math.Vec3i;
 
 public class CityHandler {
@@ -19,7 +20,7 @@ public class CityHandler {
 	}
 	
 	public List<City> getCities() {
-		return cities;
+		return CollectionUtils.copyList(cities);
 	}
 	
 	public float getCoinsPT() {

@@ -25,7 +25,7 @@ public class MouseHandler extends MouseAdapter {
 	
 	@Override
 	public void mousePressed(MouseEvent e) {
-		HUD_LAST_CLICKED_POS.set(e.getX() - (Main.getMain().getExtraWidth() / 2), e.getY() - (Main.getMain().getExtraHeight() / 2));
+		HUD_LAST_CLICKED_POS.set(e.getX() - (Main.getExtraWidth() / 2), e.getY() - (Main.getExtraHeight() / 2));
 		
 		isDragging = false;
 	}
@@ -53,7 +53,7 @@ public class MouseHandler extends MouseAdapter {
 	}
 	
 	private void updateMousePos(MouseEvent e) {
-		HUD_MOUSE_POS.set(e.getX() - (Main.getMain().getExtraWidth() / 2), e.getY() - (Main.getMain().getExtraHeight() / 2));
+		HUD_MOUSE_POS.set(e.getX() - (Main.getExtraWidth() / 2), e.getY() - (Main.getExtraHeight() / 2));
 		
 		if (Main.getMain().getCamera() != null) {
 			WORLD_MOUSE_POS.set(MathH.floor(HUD_MOUSE_POS.getX() / Main.getMain().getCamera().getZoom()),

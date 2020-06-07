@@ -1,5 +1,8 @@
 package main.java.projectciv.client;
 
+import java.awt.Rectangle;
+
+import main.java.projectciv.Main;
 import main.java.projectciv.util.ITickable;
 import main.java.projectciv.util.math.MathH;
 import main.java.projectciv.util.math.Vec2f;
@@ -13,11 +16,16 @@ public class Camera implements ITickable {
 	public void tick() {
 		pos.addX(moveX * 10f);
 		pos.addY(moveY * 10f);
+		
+		if (moveX != 0 || moveY != 0) {
+			Main.getMain().getHexHandler().resetVisibleHexCache();
+		}
 	}
 	
 	public void increaseZoom() {
 		if (zoom < 2) {
 			zoom += 0.05f;
+			Main.getMain().getHexHandler().resetVisibleHexCache();
 		}
 		
 		zoom = MathH.roundTo(zoom, 3);
@@ -26,6 +34,7 @@ public class Camera implements ITickable {
 	public void decreaseZoom() {
 		if (zoom > 0.5f) {
 			zoom -= 0.05f;
+			Main.getMain().getHexHandler().resetVisibleHexCache();
 		}
 		
 		zoom = MathH.roundTo(zoom, 3);
@@ -49,5 +58,9 @@ public class Camera implements ITickable {
 	
 	public float getZoom() {
 		return zoom;
+	}
+	
+	public Rectangle getBounds() {
+		return new Rectangle((int) getPosX(), (int) getPosY(), (int) (Main.getWindowWidth() / getZoom()), (int) (Main.getWindowHeight() / getZoom()));
 	}
 }

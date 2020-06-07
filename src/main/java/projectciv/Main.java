@@ -14,6 +14,7 @@ import main.java.projectciv.client.renderer.IRenderer;
 import main.java.projectciv.client.renderer.RendererHex;
 import main.java.projectciv.hex.HexHandler;
 import main.java.projectciv.init.HexDatas;
+import main.java.projectciv.util.CollectionUtils;
 import main.java.projectciv.util.Console;
 import main.java.projectciv.util.Console.WarningType;
 import main.java.projectciv.util.math.Vec2i;
@@ -106,7 +107,7 @@ public class Main {
 	}
 	
 	private void tick() {
-		getKeyHandler().tick();
+		keyHandler.tick();
 		camera.tick();
 	}
 	
@@ -116,30 +117,30 @@ public class Main {
 	}
 	
 	public List<IRenderer> getRenderers() {
-		return renderers;
+		return CollectionUtils.copyList(renderers);
 	}
 	
-	public int getWindowWidth() {
+	public static int getWindowWidth() {
 		return Window.getGamePanel().getWidth();
 	}
 	
-	public int getWindowHeight() {
+	public static int getWindowHeight() {
 		return Window.getGamePanel().getHeight();
 	}
 	
-	public double getScale() {
+	public static double getScale() {
 		return Window.getGamePanel().getScale();
 	}
 	
-	public int getExtraWidth() {
+	public static int getExtraWidth() {
 		return Window.getFrame().getWidth() - Window.getGamePanel().getWidth();
 	}
 	
-	public int getExtraHeight() {
+	public static int getExtraHeight() {
 		return Window.getFrame().getHeight() - Window.getGamePanel().getHeight();
 	}
 	
-	public int getFPS() {
+	public static int getFPS() {
 		return Window.getGamePanel().getFPS();
 	}
 	

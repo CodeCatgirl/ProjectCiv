@@ -32,13 +32,13 @@ public class HexData {
 	}
 	
 	public enum HexType {
-		none    (45, 20, 25, 10, 5, 8),
-		water   (7, 120, 5, 2, 15, 5),
-		hill    (20, 10, 40, 5, 2, 20),
-		desert  (20, 2, 10, 50, 0, 3),
-		swamp   (30, 15, 2, 0, 30, 0),
-		mountain(15, 2, 40, 3, 0, 70),
-		ocean   (0, 0, 0, 0, 0, 0);
+		none     (45, 20, 25, 10, 5, 8),
+		water    (7, 120, 5, 2, 15, 5),
+		hills    (20, 10, 40, 5, 2, 20),
+		desert   (20, 2, 10, 50, 0, 3),
+		swamp    (30, 15, 2, 0, 30, 0),
+		mountains(15, 2, 40, 3, 0, 70),
+		ocean    (0, 0, 0, 0, 0, 0);
 		
 		private final int chanceForNone, chanceForWater, chanceForHill, chanceForDesert, chanceForSwamp, chanceForMountain, all;
 		

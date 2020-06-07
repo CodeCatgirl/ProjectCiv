@@ -1,6 +1,7 @@
 package main.java.projectciv.hex;
 
 import java.awt.Polygon;
+import java.awt.Rectangle;
 
 import main.java.projectciv.city.City;
 import main.java.projectciv.init.HexDatas;
@@ -105,6 +106,10 @@ public class Hex {
 	
 	public City getCity() {
 		return city;
+	}
+	
+	public boolean intersects(Rectangle r) {
+		return hex.intersects(r.x, r.y, r.width, r.height);
 	}
 	
 	public boolean intersects(int x, int y, int w, int h) {

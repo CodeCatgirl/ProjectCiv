@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -42,6 +44,16 @@ public class Window {
 		frame.addMouseListener(Main.getMouseHandler());
 		frame.addMouseMotionListener(Main.getMouseHandler());
 		frame.addMouseWheelListener(Main.getMouseHandler());
+		frame.addComponentListener(new ComponentListener() {
+			@Override public void componentShown(ComponentEvent e) {}
+			@Override public void componentMoved(ComponentEvent e) {}
+			@Override public void componentHidden(ComponentEvent e) {}
+			
+			@Override
+			public void componentResized(ComponentEvent e) {
+				Main.getMain().getHexHandler().resetVisibleHexCache();
+			}
+		});
 	}
 	
 	public static void toggleFullscreen() {
